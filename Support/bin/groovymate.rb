@@ -21,6 +21,21 @@ TextMate.save_current_document
 TextMate::Executor.make_project_master_current_document
 
 cmd = [ENV['TM_GROOVY'] || "groovy"]
+
+clazz_dir = "#{Dir.pwd}/target/classes"
+idea_lib = "#{Dir.pwd}/.idea/libraries/dependencies.xml"
+
+if [clazz_dir, idea_lib].all? {|d| File.exists?(d) }
+  require 'rubygems'
+  require 'nokogiri'
+
+  cmd << "-cp"
+  doc = Nokogiri::XML(File.open("#{Dir.pwd}/.idea/libraries/dependencies.xml"))
+  jars = doc.search('//root').collect {|r| [Dir.pwd, r.attributes['url'].text.gsub(/!/, '').split('/')[4..-1]].flatten.join('/') }.join(':')
+
+  cmd << "#{Dir.pwd}/target/classes:#{jars}"
+end
+
 cmd << ENV['TM_FILEPATH']
 script_args = []
 if ENV.include? 'TM_GROOVYMATE_GET_ARGS'
@@ -31,3 +46,4 @@ if ENV.include? 'TM_GROOVYMATE_GET_ARGS'
 end
 
 TextMate::Executor.run(cmd, :version_args => ["--version"], :script_args => script_args)
+
