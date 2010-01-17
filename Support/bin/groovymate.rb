@@ -23,17 +23,36 @@ TextMate::Executor.make_project_master_current_document
 cmd = [ENV['TM_GROOVY'] || "groovy"]
 
 clazz_dir = "#{Dir.pwd}/target/classes"
-idea_lib = "#{Dir.pwd}/.idea/libraries/dependencies.xml"
 
-if [clazz_dir, idea_lib].all? {|d| File.exists?(d) }
+classpath_entries = []
+classpath_entries << clazz_dir if File.exists?(clazz_dir)
+
+idea_lib = "#{Dir.pwd}/.idea/libraries/dependencies.xml"
+if File.exists?(idea_lib)
   require 'rubygems'
   require 'nokogiri'
 
-  cmd << "-cp"
   doc = Nokogiri::XML(File.open("#{Dir.pwd}/.idea/libraries/dependencies.xml"))
-  jars = doc.search('//root').collect {|r| [Dir.pwd, r.attributes['url'].text.gsub(/!/, '').split('/')[4..-1]].flatten.join('/') }.join(':')
+  jars = doc.search('//root').collect {|r| [Dir.pwd, 'ivy-cache', r.attributes['url'].text.gsub(/!/, '').split('/')[4..-1]].flatten.join('/') }
 
-  cmd << "#{Dir.pwd}/target/classes:#{jars}"
+  classpath_entries << jars
+end
+
+grails_home = ENV['GRAILS_HOME']
+grails_dist = "#{grails_home}/dist"
+if File.exists?(grails_dist)
+  classpath_entries << Dir.glob("#{grails_dist}/*.*")
+end
+
+grails_lib = "#{grails_home}/lib"
+if File.exists?(grails_lib)
+  classpath_entries << Dir.glob("#{grails_lib}/*.*")
+end
+
+classpath_entries.flatten!
+unless classpath_entries.empty?
+  cmd << "-cp"
+  cmd << classpath_entries.join(':')
 end
 
 cmd << ENV['TM_FILEPATH']
