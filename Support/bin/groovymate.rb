@@ -27,17 +27,6 @@ clazz_dir = "#{Dir.pwd}/target/classes"
 classpath_entries = []
 classpath_entries << clazz_dir if File.exists?(clazz_dir)
 
-idea_lib = "#{Dir.pwd}/.idea/libraries/dependencies.xml"
-if File.exists?(idea_lib)
-  require 'rubygems'
-  require 'nokogiri'
-
-  doc = Nokogiri::XML(File.open("#{Dir.pwd}/.idea/libraries/dependencies.xml"))
-  jars = doc.search('//root').collect {|r| [Dir.pwd, 'ivy-cache', r.attributes['url'].text.gsub(/!/, '').split('/')[4..-1]].flatten.join('/') }
-
-  classpath_entries << jars
-end
-
 grails_home = ENV['GRAILS_HOME']
 grails_dist = "#{grails_home}/dist"
 if File.exists?(grails_dist)
