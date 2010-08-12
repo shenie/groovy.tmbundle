@@ -33,11 +33,6 @@ if File.exists?(grails_dist)
   classpath_entries << Dir.glob("#{grails_dist}/*.*")
 end
 
-grails_lib = "#{grails_home}/lib"
-if File.exists?(grails_lib)
-  classpath_entries << Dir.glob("#{grails_lib}/*.*")
-end
-
 classpath_entries.flatten!
 unless classpath_entries.empty?
   cmd << "-cp"
